@@ -1,0 +1,197 @@
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* FitRit Elegant & Serene Theme - Light Mode Only */
+
+    /* Background: Warm White/Cream */
+    --background: 40 33% 98%;
+    --foreground: 0 0% 24%;
+
+    /* Card: Pure White */
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 24%;
+
+    /* Popover */
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 24%;
+
+    /* Primary: Dusty Rose/Blush */
+    --primary: 0 30% 74%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary: Warm Taupe */
+    --secondary: 30 15% 66%;
+    --secondary-foreground: 0 0% 100%;
+
+    /* Muted: Light Taupe */
+    --muted: 30 15% 95%;
+    --muted-foreground: 0 0% 45%;
+
+    /* Accent: Sage Green */
+    --accent: 120 10% 58%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Destructive: Soft Red */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Border: Soft Beige */
+    --border: 30 15% 90%;
+    --input: 30 15% 90%;
+
+    /* Ring: Rose Gold */
+    --ring: 350 35% 57%;
+
+    /* Radius */
+    --radius: 0.5rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Typography defaults */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display font-semibold tracking-tight;
+  }
+
+  h1 {
+    @apply text-display-lg md:text-display-xl;
+  }
+
+  h2 {
+    @apply text-display-md md:text-display-lg;
+  }
+
+  h3 {
+    @apply text-display-sm md:text-display-md;
+  }
+
+  h4 {
+    @apply text-display-xs md:text-display-sm;
+  }
+
+  /* Focus styles */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  /* Selection color */
+  ::selection {
+    @apply bg-blush-200 text-foreground;
+  }
+}
+
+@layer components {
+  /* Container utility */
+  .container-narrow {
+    @apply max-w-4xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .container-wide {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Section spacing */
+  .section {
+    @apply py-16 md:py-24;
+  }
+
+  .section-sm {
+    @apply py-8 md:py-12;
+  }
+
+  /* Card hover effect */
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-soft-lg hover:-translate-y-1;
+  }
+
+  /* Elegant button styles */
+  .btn-elegant {
+    @apply inline-flex items-center justify-center rounded-md px-6 py-3 text-sm font-medium transition-all duration-200;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+    @apply disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .btn-elegant-primary {
+    @apply btn-elegant bg-blush-400 text-white hover:bg-blush-500;
+  }
+
+  .btn-elegant-secondary {
+    @apply btn-elegant bg-taupe-100 text-taupe-700 hover:bg-taupe-200;
+  }
+
+  .btn-elegant-outline {
+    @apply btn-elegant border-2 border-blush-400 text-blush-600 hover:bg-blush-50;
+  }
+
+  /* Text gradient */
+  .text-gradient {
+    @apply bg-gradient-to-r from-blush-500 to-rosegold bg-clip-text text-transparent;
+  }
+
+  /* Divider */
+  .divider {
+    @apply h-px bg-gradient-to-r from-transparent via-border to-transparent;
+  }
+
+  /* Glass effect */
+  .glass {
+    @apply bg-white/80 backdrop-blur-md;
+  }
+}
+
+@layer utilities {
+  /* Animation utilities */
+  .animate-in {
+    animation: animate-in 0.5s ease-out forwards;
+  }
+
+  @keyframes animate-in {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Stagger children animations */
+  .stagger-children > * {
+    @apply opacity-0;
+    animation: animate-in 0.5s ease-out forwards;
+  }
+
+  .stagger-children > *:nth-child(1) { animation-delay: 0.1s; }
+  .stagger-children > *:nth-child(2) { animation-delay: 0.2s; }
+  .stagger-children > *:nth-child(3) { animation-delay: 0.3s; }
+  .stagger-children > *:nth-child(4) { animation-delay: 0.4s; }
+  .stagger-children > *:nth-child(5) { animation-delay: 0.5s; }
+  .stagger-children > *:nth-child(6) { animation-delay: 0.6s; }
+
+  /* Hide scrollbar but keep functionality */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
