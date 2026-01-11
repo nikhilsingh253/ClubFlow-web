@@ -41,6 +41,28 @@ export const ROUTES = {
   PORTAL_MEMBERSHIP: '/portal/membership',
   PORTAL_INVOICES: '/portal/invoices',
   PORTAL_PROFILE: '/portal/profile',
+
+  // Admin Dashboard
+  ADMIN: '/admin',
+  ADMIN_CUSTOMERS: '/admin/customers',
+  ADMIN_CUSTOMER_DETAIL: '/admin/customers/:id',
+  ADMIN_CUSTOMER_NEW: '/admin/customers/new',
+  ADMIN_BOOKINGS: '/admin/bookings',
+  ADMIN_SCHEDULE: '/admin/schedule',
+  ADMIN_CHECKIN: '/admin/check-in',
+  ADMIN_TRIALS: '/admin/trials',
+  ADMIN_MESSAGES: '/admin/messages',
+  ADMIN_MEMBERSHIPS: '/admin/memberships',
+  ADMIN_INVOICES: '/admin/invoices',
+  ADMIN_WAITLIST: '/admin/waitlist',
+  ADMIN_REQUESTS: '/admin/requests',
+  // Owner-only
+  ADMIN_CLASS_TYPES: '/admin/class-types',
+  ADMIN_PLANS: '/admin/plans',
+  ADMIN_TRAINERS: '/admin/trainers',
+  ADMIN_STAFF: '/admin/staff',
+  ADMIN_SETTINGS: '/admin/settings',
+  ADMIN_REPORTS: '/admin/reports',
 } as const
 
 // Class levels
@@ -117,3 +139,45 @@ export const PORTAL_NAV_ITEMS = [
   { label: 'Invoices', href: ROUTES.PORTAL_INVOICES, icon: 'Receipt' },
   { label: 'Profile', href: ROUTES.PORTAL_PROFILE, icon: 'User' },
 ] as const
+
+// Admin navigation items (for both staff and owner)
+export const ADMIN_NAV_ITEMS = [
+  { label: 'Dashboard', href: ROUTES.ADMIN, icon: 'LayoutDashboard' },
+  { label: 'Schedule', href: ROUTES.ADMIN_SCHEDULE, icon: 'Calendar' },
+  { label: 'Bookings', href: ROUTES.ADMIN_BOOKINGS, icon: 'CalendarCheck' },
+  { label: 'Check-in', href: ROUTES.ADMIN_CHECKIN, icon: 'QrCode' },
+  { label: 'Customers', href: ROUTES.ADMIN_CUSTOMERS, icon: 'Users' },
+  { label: 'Memberships', href: ROUTES.ADMIN_MEMBERSHIPS, icon: 'CreditCard' },
+  { label: 'Trials', href: ROUTES.ADMIN_TRIALS, icon: 'UserPlus' },
+  { label: 'Messages', href: ROUTES.ADMIN_MESSAGES, icon: 'MessageSquare' },
+  { label: 'Invoices', href: ROUTES.ADMIN_INVOICES, icon: 'Receipt' },
+  { label: 'Waitlist', href: ROUTES.ADMIN_WAITLIST, icon: 'Clock' },
+  { label: 'Requests', href: ROUTES.ADMIN_REQUESTS, icon: 'FileText' },
+] as const
+
+// Admin navigation items (owner-only)
+export const ADMIN_OWNER_NAV_ITEMS = [
+  { label: 'Class Types', href: ROUTES.ADMIN_CLASS_TYPES, icon: 'Dumbbell' },
+  { label: 'Plans', href: ROUTES.ADMIN_PLANS, icon: 'Package' },
+  { label: 'Trainers', href: ROUTES.ADMIN_TRAINERS, icon: 'UserCheck' },
+  { label: 'Staff', href: ROUTES.ADMIN_STAFF, icon: 'Shield' },
+  { label: 'Settings', href: ROUTES.ADMIN_SETTINGS, icon: 'Settings' },
+  { label: 'Reports', href: ROUTES.ADMIN_REPORTS, icon: 'BarChart3' },
+] as const
+
+// Trial booking status options
+export const TRIAL_STATUS = {
+  NEW: 'new',
+  CONTACTED: 'contacted',
+  SCHEDULED: 'scheduled',
+  COMPLETED: 'completed',
+  CONVERTED: 'converted',
+  LOST: 'lost',
+} as const
+
+// Contact message status
+export const MESSAGE_STATUS = {
+  NEW: 'new',
+  IN_PROGRESS: 'in_progress',
+  RESOLVED: 'resolved',
+} as const

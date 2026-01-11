@@ -5,7 +5,9 @@ import { lazy, Suspense } from 'react'
 import PublicLayout from '@/components/layout/PublicLayout'
 import PortalLayout from '@/components/layout/PortalLayout'
 import AuthLayout from '@/components/layout/AuthLayout'
+import AdminLayout from '@/components/layout/AdminLayout'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
+import AdminProtectedRoute from '@/components/auth/AdminProtectedRoute'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
 
 // Lazy load pages for better performance
@@ -30,6 +32,27 @@ const BookSchedulePage = lazy(() => import('@/pages/portal/BookSchedulePage'))
 const MembershipPage = lazy(() => import('@/pages/portal/MembershipPage'))
 const InvoicesPage = lazy(() => import('@/pages/portal/InvoicesPage'))
 const ProfilePage = lazy(() => import('@/pages/portal/ProfilePage'))
+
+// Admin pages
+const AdminDashboardPage = lazy(() => import('@/pages/admin/AdminDashboardPage'))
+const AdminSchedulePage = lazy(() => import('@/pages/admin/AdminSchedulePage'))
+const AdminBookingsPage = lazy(() => import('@/pages/admin/AdminBookingsPage'))
+const AdminCheckInPage = lazy(() => import('@/pages/admin/AdminCheckInPage'))
+const AdminCustomersPage = lazy(() => import('@/pages/admin/AdminCustomersPage'))
+const AdminCustomerDetailPage = lazy(() => import('@/pages/admin/AdminCustomerDetailPage'))
+const AdminCustomerNewPage = lazy(() => import('@/pages/admin/AdminCustomerNewPage'))
+const AdminMembershipsPage = lazy(() => import('@/pages/admin/AdminMembershipsPage'))
+const AdminTrialsPage = lazy(() => import('@/pages/admin/AdminTrialsPage'))
+const AdminMessagesPage = lazy(() => import('@/pages/admin/AdminMessagesPage'))
+const AdminInvoicesPage = lazy(() => import('@/pages/admin/AdminInvoicesPage'))
+const AdminWaitlistPage = lazy(() => import('@/pages/admin/AdminWaitlistPage'))
+const AdminRequestsPage = lazy(() => import('@/pages/admin/AdminRequestsPage'))
+const AdminClassTypesPage = lazy(() => import('@/pages/admin/AdminClassTypesPage'))
+const AdminMembershipPlansPage = lazy(() => import('@/pages/admin/AdminMembershipPlansPage'))
+const AdminTrainersPage = lazy(() => import('@/pages/admin/AdminTrainersPage'))
+const AdminStaffPage = lazy(() => import('@/pages/admin/AdminStaffPage'))
+const AdminSettingsPage = lazy(() => import('@/pages/admin/AdminSettingsPage'))
+const AdminReportsPage = lazy(() => import('@/pages/admin/AdminReportsPage'))
 
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'))
 
@@ -213,6 +236,171 @@ export const router = createBrowserRouter([
         element: (
           <SuspenseWrapper>
             <ProfilePage />
+          </SuspenseWrapper>
+        ),
+      },
+    ],
+  },
+
+  // Protected admin routes
+  {
+    path: '/admin',
+    element: (
+      <AdminProtectedRoute>
+        <AdminLayout />
+      </AdminProtectedRoute>
+    ),
+    children: [
+      {
+        index: true,
+        element: (
+          <SuspenseWrapper>
+            <AdminDashboardPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: 'schedule',
+        element: (
+          <SuspenseWrapper>
+            <AdminSchedulePage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: 'bookings',
+        element: (
+          <SuspenseWrapper>
+            <AdminBookingsPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: 'check-in',
+        element: (
+          <SuspenseWrapper>
+            <AdminCheckInPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: 'customers',
+        element: (
+          <SuspenseWrapper>
+            <AdminCustomersPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: 'customers/new',
+        element: (
+          <SuspenseWrapper>
+            <AdminCustomerNewPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: 'customers/:id',
+        element: (
+          <SuspenseWrapper>
+            <AdminCustomerDetailPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: 'memberships',
+        element: (
+          <SuspenseWrapper>
+            <AdminMembershipsPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: 'trials',
+        element: (
+          <SuspenseWrapper>
+            <AdminTrialsPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: 'messages',
+        element: (
+          <SuspenseWrapper>
+            <AdminMessagesPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: 'invoices',
+        element: (
+          <SuspenseWrapper>
+            <AdminInvoicesPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: 'waitlist',
+        element: (
+          <SuspenseWrapper>
+            <AdminWaitlistPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: 'requests',
+        element: (
+          <SuspenseWrapper>
+            <AdminRequestsPage />
+          </SuspenseWrapper>
+        ),
+      },
+      // Owner-only Configuration pages
+      {
+        path: 'class-types',
+        element: (
+          <SuspenseWrapper>
+            <AdminClassTypesPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: 'plans',
+        element: (
+          <SuspenseWrapper>
+            <AdminMembershipPlansPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: 'trainers',
+        element: (
+          <SuspenseWrapper>
+            <AdminTrainersPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: 'staff',
+        element: (
+          <SuspenseWrapper>
+            <AdminStaffPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: 'settings',
+        element: (
+          <SuspenseWrapper>
+            <AdminSettingsPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: 'reports',
+        element: (
+          <SuspenseWrapper>
+            <AdminReportsPage />
           </SuspenseWrapper>
         ),
       },
