@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { GoogleLogin, type CredentialResponse } from '@react-oauth/google'
 import { useMutation } from '@tanstack/react-query'
@@ -22,9 +22,11 @@ export default function LoginPage() {
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname || ROUTES.PORTAL
 
   // Redirect if already authenticated
-  if (isAuthenticated) {
-    navigate(from, { replace: true })
-  }
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate(from, { replace: true })
+    }
+  }, [isAuthenticated, navigate, from])
 
   const googleMutation = useMutation({
     mutationFn: (credential: string) => googleLogin(credential),

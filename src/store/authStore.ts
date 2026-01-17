@@ -18,11 +18,17 @@ interface AuthState {
   logout: () => void
   setLoading: (loading: boolean) => void
   updateUser: (updates: Partial<User>) => void
+
+  // Computed helpers
+  isTrainer: () => boolean
+  isStaffOrAbove: () => boolean
+  isManagerOrAbove: () => boolean
+  getTrainerId: () => string | null
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       // Initial state
       user: null,
       accessToken: null,
@@ -70,6 +76,18 @@ export const useAuthStore = create<AuthState>()(
         set((state) => ({
           user: state.user ? { ...state.user, ...updates } : null,
         })),
+
+      // Computed helpers - check if user is a trainer (has trainer profile linked)
+      isTrainer: () => get().user?.isTrainer === true,
+
+      // Check if user is staff or higher (staff, trainer, manager, admin)
+      isStaffOrAbove: () => ['staff', 'trainer', 'manager', 'admin'].includes(get().user?.userType || ''),
+
+      // Check if user is manager or admin (owner-level access)
+      isManagerOrAbove: () => ['manager', 'admin'].includes(get().user?.userType || ''),
+
+      // Get trainer ID if user is a trainer
+      getTrainerId: () => get().user?.trainerId || null,
     }),
     {
       name: 'fitrit-auth',
@@ -79,6 +97,14 @@ export const useAuthStore = create<AuthState>()(
         refreshToken: state.refreshToken,
         isAuthenticated: state.isAuthenticated,
       }),
+      onRehydrateStorage: () => (state) => {
+        // Set loading to false once hydration is complete
+        // This prevents race conditions where isLoading becomes false
+        // before isAuthenticated is restored from localStorage
+        if (state) {
+          state.setLoading(false)
+        }
+      },
     }
   )
 )

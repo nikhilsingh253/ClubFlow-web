@@ -19,6 +19,9 @@ const queryClient = new QueryClient({
 })
 
 function App() {
+  // Auth loading state is now handled by zustand's onRehydrateStorage callback
+  // in authStore.ts - no need for manual timeout here
+
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <QueryClientProvider client={queryClient}>
