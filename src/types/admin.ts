@@ -439,6 +439,18 @@ export interface AdminTrainer {
   photoUrl: string | null
   isActive: boolean
   displayOrder: number
+  // Optional: linked user ID for staff management
+  userId?: string | null
+}
+
+// Trainer profile returned from /admin/me/trainer/ for logged-in trainers
+export interface MyTrainerProfile {
+  id: string
+  name: string
+  email: string
+  specializations: string[]
+  isActive: boolean
+  photoUrl?: string | null
 }
 
 export interface AdminStaffMember {

@@ -26,7 +26,7 @@ import {
 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { logout as logoutApi } from '@/api/auth'
-import { ROUTES, ADMIN_NAV_ITEMS, ADMIN_OWNER_NAV_ITEMS, APP_NAME } from '@/lib/constants'
+import { ROUTES, ADMIN_NAV_ITEMS, ADMIN_TRAINER_NAV_ITEMS, ADMIN_OWNER_NAV_ITEMS, APP_NAME } from '@/lib/constants'
 import { cn } from '@/lib/utils'
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -53,10 +53,17 @@ export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [configExpanded, setConfigExpanded] = useState(false)
   const navigate = useNavigate()
-  const { user, logout } = useAuthStore()
 
-  // Check if user has owner role
-  const isOwner = user?.userType === 'manager' || user?.userType === 'admin'
+  // Use selectors to avoid re-render issues from calling functions during render
+  const user = useAuthStore((state) => state.user)
+  const logout = useAuthStore((state) => state.logout)
+
+  // Compute role checks from user data
+  const isOwner = ['manager', 'admin'].includes(user?.userType || '')
+  const isTrainerOnly = user?.isTrainer === true && !isOwner
+
+  // Select navigation items based on user role
+  const navItems = isTrainerOnly ? ADMIN_TRAINER_NAV_ITEMS : ADMIN_NAV_ITEMS
 
   const handleLogout = async () => {
     await logoutApi()
@@ -98,17 +105,17 @@ export default function AdminLayout() {
       {/* Logo */}
       <div className="flex items-center gap-2 px-4 py-5 border-b border-gray-200">
         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blush-500 to-blush-600 flex items-center justify-center">
-          <span className="text-white font-bold text-sm">A</span>
+          <span className="text-white font-bold text-sm">{isTrainerOnly ? 'T' : 'A'}</span>
         </div>
         <div>
           <h1 className="font-display font-semibold text-gray-900">{APP_NAME}</h1>
-          <p className="text-xs text-gray-500">Admin Dashboard</p>
+          <p className="text-xs text-gray-500">{isTrainerOnly ? 'Trainer Portal' : 'Admin Dashboard'}</p>
         </div>
       </div>
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
-        {ADMIN_NAV_ITEMS.map((item) => (
+        {navItems.map((item) => (
           <NavItem
             key={item.href}
             item={item}
@@ -213,7 +220,9 @@ export default function AdminLayout() {
           >
             <Menu className="h-5 w-5" />
           </button>
-          <h1 className="font-display font-semibold text-gray-900">{APP_NAME} Admin</h1>
+          <h1 className="font-display font-semibold text-gray-900">
+            {APP_NAME} {isTrainerOnly ? 'Trainer' : 'Admin'}
+          </h1>
         </header>
 
         {/* Page content */}

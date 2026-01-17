@@ -33,6 +33,7 @@ import type {
   ContactMessageStatus,
   PaymentMethod,
   AdminBookingStatus,
+  MyTrainerProfile,
 } from '@/types/admin'
 import type { PaginatedResponse } from '@/types'
 
@@ -81,6 +82,26 @@ export async function getTodayClasses(): Promise<TodayClass[]> {
 export async function getAdminMe(): Promise<AdminUser> {
   const response = await apiClient.get('/admin/me/')
   return transformKeys<AdminUser>(response.data)
+}
+
+// Get current user's trainer profile (for trainers only)
+export async function getMyTrainerProfile(): Promise<MyTrainerProfile> {
+  const response = await apiClient.get('/admin/me/trainer/')
+  return transformKeys<MyTrainerProfile>(response.data)
+}
+
+// Link a trainer profile to a user account (manager only)
+export async function linkTrainerToUser(trainerId: number, userId: string): Promise<AdminTrainer> {
+  const response = await apiClient.post(`/admin/trainers/${trainerId}/link-user/`, {
+    user_id: userId,
+  })
+  return transformKeys<AdminTrainer>(response.data)
+}
+
+// Unlink a trainer profile from a user account (manager only)
+export async function unlinkTrainerFromUser(trainerId: number): Promise<AdminTrainer> {
+  const response = await apiClient.post(`/admin/trainers/${trainerId}/unlink-user/`)
+  return transformKeys<AdminTrainer>(response.data)
 }
 
 // ============================================

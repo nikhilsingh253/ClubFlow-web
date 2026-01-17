@@ -11,6 +11,7 @@ import {
   Users,
 } from 'lucide-react'
 import { getSchedules } from '@/api/admin'
+import { useAuthStore } from '@/store/authStore'
 import type { AdminSchedule } from '@/types/admin'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
 import { cn } from '@/lib/utils'
@@ -24,6 +25,11 @@ export default function AdminSchedulePage() {
   const [viewMode, setViewMode] = useState<ViewMode>('week')
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedSchedule, setSelectedSchedule] = useState<AdminSchedule | null>(null)
+
+  // Use selector to get user and compute role checks (avoids re-render issues)
+  const user = useAuthStore((state) => state.user)
+  const isOwner = ['manager', 'admin'].includes(user?.userType || '')
+  const isTrainerOnly = user?.isTrainer === true && !isOwner
 
   // Calculate week range
   const weekStart = useMemo(() => {
@@ -102,13 +108,20 @@ export default function AdminSchedulePage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-display font-semibold text-gray-900">Class Schedule</h1>
-          <p className="text-gray-500 mt-1">Manage and view class schedule</p>
+          <h1 className="text-2xl font-display font-semibold text-gray-900">
+            {isTrainerOnly ? 'My Schedule' : 'Class Schedule'}
+          </h1>
+          <p className="text-gray-500 mt-1">
+            {isTrainerOnly ? 'View your assigned classes' : 'Manage and view class schedule'}
+          </p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-blush-600 text-white font-medium rounded-lg hover:bg-blush-700 transition-colors">
-          <Plus className="h-4 w-4" />
-          Add Class
-        </button>
+        {/* Hide Add Class button for trainers */}
+        {!isTrainerOnly && (
+          <button className="flex items-center gap-2 px-4 py-2 bg-blush-600 text-white font-medium rounded-lg hover:bg-blush-700 transition-colors">
+            <Plus className="h-4 w-4" />
+            Add Class
+          </button>
+        )}
       </div>
 
       {/* Navigation Controls */}

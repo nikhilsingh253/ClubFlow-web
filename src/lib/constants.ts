@@ -140,7 +140,7 @@ export const PORTAL_NAV_ITEMS = [
   { label: 'Profile', href: ROUTES.PORTAL_PROFILE, icon: 'User' },
 ] as const
 
-// Admin navigation items (for both staff and owner)
+// Admin navigation items (for staff and owner - full access)
 export const ADMIN_NAV_ITEMS = [
   { label: 'Dashboard', href: ROUTES.ADMIN, icon: 'LayoutDashboard' },
   { label: 'Schedule', href: ROUTES.ADMIN_SCHEDULE, icon: 'Calendar' },
@@ -153,6 +153,14 @@ export const ADMIN_NAV_ITEMS = [
   { label: 'Invoices', href: ROUTES.ADMIN_INVOICES, icon: 'Receipt' },
   { label: 'Waitlist', href: ROUTES.ADMIN_WAITLIST, icon: 'Clock' },
   { label: 'Requests', href: ROUTES.ADMIN_REQUESTS, icon: 'FileText' },
+] as const
+
+// Admin navigation items for trainers (limited access - only their classes)
+export const ADMIN_TRAINER_NAV_ITEMS = [
+  { label: 'Dashboard', href: ROUTES.ADMIN, icon: 'LayoutDashboard' },
+  { label: 'My Schedule', href: ROUTES.ADMIN_SCHEDULE, icon: 'Calendar' },
+  { label: 'My Bookings', href: ROUTES.ADMIN_BOOKINGS, icon: 'CalendarCheck' },
+  { label: 'Check-in', href: ROUTES.ADMIN_CHECKIN, icon: 'QrCode' },
 ] as const
 
 // Admin navigation items (owner-only)

@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { RouterProvider } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { GoogleOAuthProvider } from '@react-oauth/google'
@@ -6,7 +5,6 @@ import { Toaster } from 'react-hot-toast'
 
 import { router } from './routes'
 import { GOOGLE_CLIENT_ID } from '@/lib/constants'
-import { useAuthStore } from '@/store/authStore'
 
 // Create a client
 const queryClient = new QueryClient({
@@ -21,16 +19,8 @@ const queryClient = new QueryClient({
 })
 
 function App() {
-  const setLoading = useAuthStore((state) => state.setLoading)
-
-  // Initialize auth state - set loading to false after hydration
-  useEffect(() => {
-    // Small delay to ensure zustand has hydrated from localStorage
-    const timer = setTimeout(() => {
-      setLoading(false)
-    }, 100)
-    return () => clearTimeout(timer)
-  }, [setLoading])
+  // Auth loading state is now handled by zustand's onRehydrateStorage callback
+  // in authStore.ts - no need for manual timeout here
 
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>

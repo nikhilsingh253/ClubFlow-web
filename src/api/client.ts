@@ -1,4 +1,5 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
+import toast from 'react-hot-toast'
 import { API_BASE_URL, TOKEN_KEY, REFRESH_TOKEN_KEY } from '@/lib/constants'
 
 /**
@@ -37,11 +38,15 @@ export const setTokens = (accessToken: string, refreshToken: string): void => {
 }
 
 /**
- * Clear tokens from storage
+ * Clear tokens and auth state from storage
+ * This clears both the raw token keys AND the zustand persisted state
+ * to ensure a complete logout
  */
 export const clearTokens = (): void => {
   localStorage.removeItem(TOKEN_KEY)
   localStorage.removeItem(REFRESH_TOKEN_KEY)
+  // Also clear the zustand persisted auth state to prevent redirect loops
+  localStorage.removeItem('fitrit-auth')
 }
 
 /**
@@ -85,8 +90,15 @@ const processQueue = (error: unknown, token: string | null = null) => {
 
 apiClient.interceptors.response.use(
   (response) => response,
-  async (error: AxiosError) => {
+  async (error: AxiosError<{ detail?: string }>) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean }
+
+    // Handle 403 Forbidden - show user-friendly message
+    if (error.response?.status === 403) {
+      const message = error.response.data?.detail || 'You do not have permission to perform this action.'
+      toast.error(message)
+      return Promise.reject(error)
+    }
 
     // If not a 401 error or already retried, reject
     if (error.response?.status !== 401 || originalRequest._retry) {

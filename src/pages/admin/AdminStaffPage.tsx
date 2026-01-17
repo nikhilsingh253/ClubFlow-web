@@ -8,8 +8,11 @@ import {
   inviteStaff,
   updateStaffMember,
   deactivateStaff,
+  getTrainers,
+  linkTrainerToUser,
+  unlinkTrainerFromUser,
 } from '@/api/admin'
-import type { AdminStaffMember, AdminRole } from '@/types/admin'
+import type { AdminStaffMember, AdminRole, AdminTrainer } from '@/types/admin'
 import {
   Plus,
   Mail,
@@ -21,6 +24,9 @@ import {
   MoreVertical,
   UserX,
   Key,
+  Link2,
+  Unlink,
+  Dumbbell,
 } from 'lucide-react'
 
 export default function AdminStaffPage() {
@@ -28,10 +34,18 @@ export default function AdminStaffPage() {
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
   const [inviteData, setInviteData] = useState({ email: '', name: '', role: 'staff' as AdminRole })
   const [openMenuId, setOpenMenuId] = useState<number | null>(null)
+  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false)
+  const [selectedStaffForLinking, setSelectedStaffForLinking] = useState<AdminStaffMember | null>(null)
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin', 'staff'],
     queryFn: getStaffMembers,
+  })
+
+  // Fetch trainers for linking
+  const { data: trainersData } = useQuery({
+    queryKey: ['admin', 'trainers'],
+    queryFn: getTrainers,
   })
 
   const inviteMutation = useMutation({
@@ -69,9 +83,61 @@ export default function AdminStaffPage() {
     },
   })
 
+  const linkTrainerMutation = useMutation({
+    mutationFn: ({ trainerId, userId }: { trainerId: number; userId: string }) =>
+      linkTrainerToUser(trainerId, userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'staff'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'trainers'] })
+      toast.success('Trainer profile linked successfully')
+      closeLinkModal()
+    },
+    onError: () => {
+      toast.error('Failed to link trainer profile')
+    },
+  })
+
+  const unlinkTrainerMutation = useMutation({
+    mutationFn: unlinkTrainerFromUser,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'staff'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'trainers'] })
+      toast.success('Trainer profile unlinked')
+    },
+    onError: () => {
+      toast.error('Failed to unlink trainer profile')
+    },
+  })
+
   const closeInviteModal = () => {
     setIsInviteModalOpen(false)
     setInviteData({ email: '', name: '', role: 'staff' })
+  }
+
+  const closeLinkModal = () => {
+    setIsLinkModalOpen(false)
+    setSelectedStaffForLinking(null)
+  }
+
+  const openLinkModal = (staff: AdminStaffMember) => {
+    setSelectedStaffForLinking(staff)
+    setIsLinkModalOpen(true)
+    setOpenMenuId(null)
+  }
+
+  const handleLinkTrainer = (trainer: AdminTrainer) => {
+    if (!selectedStaffForLinking) return
+    linkTrainerMutation.mutate({
+      trainerId: trainer.id,
+      userId: String(selectedStaffForLinking.id),
+    })
+  }
+
+  const handleUnlinkTrainer = (trainer: AdminTrainer) => {
+    if (confirm(`Unlink ${trainer.name} from their user account? They will lose trainer portal access.`)) {
+      unlinkTrainerMutation.mutate(trainer.id)
+    }
+    setOpenMenuId(null)
   }
 
   const handleInvite = (e: React.FormEvent) => {
@@ -117,6 +183,16 @@ export default function AdminStaffPage() {
   const staff = data?.results || []
   const activeStaff = staff.filter((s) => s.isActive)
   const inactiveStaff = staff.filter((s) => !s.isActive)
+
+  const trainers = trainersData?.results || []
+
+  // Helper to find if a staff member is linked to a trainer profile
+  const getLinkedTrainer = (staffId: number): AdminTrainer | undefined => {
+    return trainers.find((t) => t.userId === String(staffId))
+  }
+
+  // Get trainers that are not yet linked to any user (available for linking)
+  const unlinkedTrainers = trainers.filter((t) => !t.userId)
 
   return (
     <div className="space-y-6">
@@ -190,7 +266,7 @@ export default function AdminStaffPage() {
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="font-medium text-gray-900">{member.name}</h3>
                       <span
                         className={cn(
@@ -202,6 +278,13 @@ export default function AdminStaffPage() {
                       >
                         {member.role}
                       </span>
+                      {/* Trainer badge if linked */}
+                      {getLinkedTrainer(member.id) && (
+                        <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-emerald-100 text-emerald-700 flex items-center gap-1">
+                          <Dumbbell className="h-3 w-3" />
+                          Trainer
+                        </span>
+                      )}
                     </div>
                     <p className="text-sm text-gray-500">{member.email}</p>
                   </div>
@@ -254,6 +337,28 @@ export default function AdminStaffPage() {
                             <Key className="h-4 w-4" />
                             Reset Password
                           </button>
+                          <hr className="my-1" />
+                          {/* Trainer linking options */}
+                          {getLinkedTrainer(member.id) ? (
+                            <button
+                              onClick={() => {
+                                const trainer = getLinkedTrainer(member.id)
+                                if (trainer) handleUnlinkTrainer(trainer)
+                              }}
+                              className="w-full px-4 py-2 text-left text-sm text-amber-600 hover:bg-amber-50 flex items-center gap-2"
+                            >
+                              <Unlink className="h-4 w-4" />
+                              Unlink Trainer Profile
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => openLinkModal(member)}
+                              className="w-full px-4 py-2 text-left text-sm text-emerald-600 hover:bg-emerald-50 flex items-center gap-2"
+                            >
+                              <Link2 className="h-4 w-4" />
+                              Link Trainer Profile
+                            </button>
+                          )}
                           <hr className="my-1" />
                           <button
                             onClick={() => handleDeactivate(member)}
@@ -444,6 +549,94 @@ export default function AdminStaffPage() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Link Trainer Modal */}
+      {isLinkModalOpen && selectedStaffForLinking && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4">
+            <div className="fixed inset-0 bg-black/50" onClick={closeLinkModal} />
+            <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">Link Trainer Profile</h2>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Link a trainer profile to {selectedStaffForLinking.name}
+                  </p>
+                </div>
+                <button
+                  onClick={closeLinkModal}
+                  className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              {unlinkedTrainers.length > 0 ? (
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {unlinkedTrainers.map((trainer) => (
+                    <button
+                      key={trainer.id}
+                      onClick={() => handleLinkTrainer(trainer)}
+                      disabled={linkTrainerMutation.isPending}
+                      className="w-full p-3 text-left rounded-lg border border-gray-200 hover:border-blush-300 hover:bg-blush-50 transition-colors disabled:opacity-50"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                          {trainer.photoUrl ? (
+                            <img
+                              src={trainer.photoUrl}
+                              alt={trainer.name}
+                              className="w-full h-full rounded-full object-cover"
+                            />
+                          ) : (
+                            <Dumbbell className="h-5 w-5 text-emerald-600" />
+                          )}
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-gray-900">{trainer.name}</h4>
+                          <p className="text-sm text-gray-500">{trainer.email}</p>
+                          {trainer.specializations.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {trainer.specializations.slice(0, 2).map((spec) => (
+                                <span
+                                  key={spec}
+                                  className="px-1.5 py-0.5 bg-gray-100 text-gray-600 text-xs rounded"
+                                >
+                                  {spec}
+                                </span>
+                              ))}
+                              {trainer.specializations.length > 2 && (
+                                <span className="text-xs text-gray-400">
+                                  +{trainer.specializations.length - 2} more
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Dumbbell className="h-12 w-12 mx-auto text-gray-300 mb-3" />
+                  <h3 className="font-medium text-gray-900 mb-1">No unlinked trainers</h3>
+                  <p className="text-sm text-gray-500">
+                    All trainer profiles are already linked to staff accounts.
+                  </p>
+                </div>
+              )}
+
+              <div className="mt-6 pt-4 border-t border-gray-100">
+                <p className="text-xs text-gray-500 flex items-start gap-2">
+                  <Link2 className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                  Linking a trainer profile will give this staff member access to the Trainer Portal, where they can view their assigned classes and check-in attendees.
+                </p>
+              </div>
             </div>
           </div>
         </div>

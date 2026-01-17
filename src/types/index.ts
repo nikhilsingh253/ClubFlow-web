@@ -17,6 +17,9 @@ export interface User {
   userType: UserType
   dateJoined: string
   lastLogin?: string
+  // Trainer-specific fields (from /admin/me/ response)
+  isTrainer?: boolean
+  trainerId?: string
 }
 
 export type UserType = 'customer' | 'staff' | 'trainer' | 'manager' | 'admin'
