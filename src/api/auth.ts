@@ -1,5 +1,6 @@
 import apiClient from './client'
-import type { User, LoginResponse } from '@/types'
+import type { User, LoginResponse, UserType } from '@/types'
+import { TOKEN_KEY, REFRESH_TOKEN_KEY } from '@/lib/constants'
 
 /**
  * Authentication API services
@@ -19,6 +20,17 @@ interface BackendUser {
   last_login?: string
 }
 
+// Admin user response from /admin/me/
+interface AdminMeResponse {
+  id: string
+  email: string
+  name: string
+  role: 'owner' | 'staff' | 'manager'
+  is_trainer: boolean
+  trainer_id: string | null
+  last_login: string | null
+}
+
 // Transform backend user (snake_case) to frontend user (camelCase)
 const transformUser = (backendUser: BackendUser): User => ({
   id: backendUser.id,
@@ -28,10 +40,55 @@ const transformUser = (backendUser: BackendUser): User => ({
   fullName: backendUser.full_name,
   phoneNumber: backendUser.phone_number,
   profilePhotoUrl: backendUser.profile_photo_url,
-  userType: backendUser.user_type as User['userType'],
+  userType: (backendUser.user_type || 'customer') as User['userType'],
   dateJoined: backendUser.date_joined,
   lastLogin: backendUser.last_login,
 })
+
+/**
+ * Fetch admin role from /admin/me/ endpoint
+ * Returns user type and trainer info, or defaults to 'customer' if not authorized
+ */
+export const fetchAdminRole = async (): Promise<{
+  userType: UserType
+  isTrainer: boolean
+  trainerId: string | null
+}> => {
+  try {
+    const response = await apiClient.get<AdminMeResponse>('/admin/me/')
+    // Map backend role to frontend userType
+    const roleToUserType: Record<string, UserType> = {
+      owner: 'admin',
+      manager: 'manager',
+      staff: 'staff',
+    }
+    return {
+      userType: roleToUserType[response.data.role] || 'staff',
+      isTrainer: response.data.is_trainer,
+      trainerId: response.data.trainer_id,
+    }
+  } catch {
+    // If 403/404, user is not staff - they're a customer
+    return {
+      userType: 'customer',
+      isTrainer: false,
+      trainerId: null,
+    }
+  }
+}
+
+/**
+ * Enhance user with admin role info
+ */
+const enhanceUserWithRole = async (user: User): Promise<User> => {
+  const roleInfo = await fetchAdminRole()
+  return {
+    ...user,
+    userType: roleInfo.userType,
+    isTrainer: roleInfo.isTrainer,
+    trainerId: roleInfo.trainerId || undefined,
+  }
+}
 
 /**
  * Login with Google OAuth token
@@ -43,10 +100,19 @@ export const googleLogin = async (credential: string): Promise<LoginResponse> =>
   const response = await apiClient.post<{ access: string; refresh: string; user: BackendUser }>('/auth/google/', {
     id_token: credential,
   })
+
+  // Store tokens temporarily so enhanceUserWithRole can make authenticated request
+  localStorage.setItem(TOKEN_KEY, response.data.access)
+  localStorage.setItem(REFRESH_TOKEN_KEY, response.data.refresh)
+
+  // Fetch admin role to determine user type
+  const baseUser = transformUser(response.data.user)
+  const enhancedUser = await enhanceUserWithRole(baseUser)
+
   return {
     access: response.data.access,
     refresh: response.data.refresh,
-    user: transformUser(response.data.user),
+    user: enhancedUser,
   }
 }
 
@@ -120,10 +186,19 @@ export const emailLogin = async (email: string, password: string): Promise<Login
     email,
     password,
   })
+
+  // Store tokens temporarily so enhanceUserWithRole can make authenticated request
+  localStorage.setItem(TOKEN_KEY, response.data.access)
+  localStorage.setItem(REFRESH_TOKEN_KEY, response.data.refresh)
+
+  // Fetch admin role to determine user type
+  const baseUser = transformUser(response.data.user)
+  const enhancedUser = await enhanceUserWithRole(baseUser)
+
   return {
     access: response.data.access,
     refresh: response.data.refresh,
-    user: transformUser(response.data.user),
+    user: enhancedUser,
   }
 }
 

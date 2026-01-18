@@ -8,32 +8,46 @@ import { useAuthStore } from '@/store/authStore'
 import { googleLogin, emailLogin } from '@/api/auth'
 import { APP_NAME, ROUTES } from '@/lib/constants'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
+import type { User } from '@/types'
+
+// Determine redirect path based on user role
+const getRedirectPath = (user: User, fromPath?: string): string => {
+  // If user is staff, manager, or admin, redirect to admin dashboard
+  const isStaffOrAbove = ['staff', 'trainer', 'manager', 'admin'].includes(user.userType || '')
+  if (isStaffOrAbove) {
+    return ROUTES.ADMIN
+  }
+  // For customers, use the original path they were trying to access, or default to portal
+  return fromPath || ROUTES.PORTAL
+}
 
 export default function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { login, isAuthenticated } = useAuthStore()
+  const { login, isAuthenticated, user } = useAuthStore()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
 
-  // Get the redirect path from location state, or default to portal
-  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || ROUTES.PORTAL
+  // Get the redirect path from location state
+  const from = (location.state as { from?: { pathname: string } })?.from?.pathname
 
   // Redirect if already authenticated
   useEffect(() => {
-    if (isAuthenticated) {
-      navigate(from, { replace: true })
+    if (isAuthenticated && user) {
+      const redirectPath = getRedirectPath(user, from)
+      navigate(redirectPath, { replace: true })
     }
-  }, [isAuthenticated, navigate, from])
+  }, [isAuthenticated, user, navigate, from])
 
   const googleMutation = useMutation({
     mutationFn: (credential: string) => googleLogin(credential),
     onSuccess: (data) => {
       login(data.user, data.access, data.refresh)
       toast.success(`Welcome, ${data.user.firstName}!`)
-      navigate(from, { replace: true })
+      const redirectPath = getRedirectPath(data.user, from)
+      navigate(redirectPath, { replace: true })
     },
     onError: () => {
       toast.error('Failed to sign in. Please try again.')
@@ -45,7 +59,8 @@ export default function LoginPage() {
     onSuccess: (data) => {
       login(data.user, data.access, data.refresh)
       toast.success(`Welcome back, ${data.user.firstName}!`)
-      navigate(from, { replace: true })
+      const redirectPath = getRedirectPath(data.user, from)
+      navigate(redirectPath, { replace: true })
     },
     onError: (error: Error & { response?: { data?: { detail?: string } } }) => {
       const message = error.response?.data?.detail || 'Invalid email or password'
