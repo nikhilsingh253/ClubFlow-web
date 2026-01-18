@@ -34,6 +34,9 @@ import type {
   PaymentMethod,
   AdminBookingStatus,
   MyTrainerProfile,
+  StaffInviteResponse,
+  PasswordResetResponse,
+  TrainerLinkResponse,
 } from '@/types/admin'
 import type { PaginatedResponse } from '@/types'
 
@@ -91,11 +94,11 @@ export async function getMyTrainerProfile(): Promise<MyTrainerProfile> {
 }
 
 // Link a trainer profile to a user account (manager only)
-export async function linkTrainerToUser(trainerId: number, userId: string): Promise<AdminTrainer> {
+export async function linkTrainerToUser(trainerId: number, userId: string): Promise<TrainerLinkResponse> {
   const response = await apiClient.post(`/admin/trainers/${trainerId}/link-user/`, {
     user_id: userId,
   })
-  return transformKeys<AdminTrainer>(response.data)
+  return transformKeys<TrainerLinkResponse>(response.data)
 }
 
 // Unlink a trainer profile from a user account (manager only)
@@ -898,9 +901,19 @@ export async function inviteStaff(data: {
   email: string
   name: string
   role: 'staff' | 'owner'
-}): Promise<AdminStaffMember> {
+}): Promise<StaffInviteResponse> {
   const response = await apiClient.post('/admin/staff/invite/', data)
-  return transformKeys<AdminStaffMember>(response.data)
+  return transformKeys<StaffInviteResponse>(response.data)
+}
+
+export async function resetStaffPassword(id: number): Promise<PasswordResetResponse> {
+  const response = await apiClient.post(`/admin/staff/${id}/reset-password/`)
+  return transformKeys<PasswordResetResponse>(response.data)
+}
+
+export async function resendStaffInvitation(id: number): Promise<StaffInviteResponse> {
+  const response = await apiClient.post(`/admin/staff/${id}/resend-invitation/`)
+  return transformKeys<StaffInviteResponse>(response.data)
 }
 
 export async function updateStaffMember(

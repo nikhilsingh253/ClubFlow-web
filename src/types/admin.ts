@@ -461,6 +461,23 @@ export interface AdminStaffMember {
   isActive: boolean
   lastLogin: string | null
   createdAt: string
+  invitationSent?: boolean
+  invitationSentAt?: string | null
+}
+
+// Response types for email notification endpoints
+export interface StaffInviteResponse extends AdminStaffMember {
+  invitationSent: boolean
+  invitationSentAt: string | null
+}
+
+export interface PasswordResetResponse {
+  sent: boolean
+  message: string
+}
+
+export interface TrainerLinkResponse extends AdminTrainer {
+  notificationSent: boolean
 }
 
 export interface StudioConfig {
