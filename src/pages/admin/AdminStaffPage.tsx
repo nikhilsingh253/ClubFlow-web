@@ -11,6 +11,8 @@ import {
   getTrainers,
   linkTrainerToUser,
   unlinkTrainerFromUser,
+  resetStaffPassword,
+  resendStaffInvitation,
 } from '@/api/admin'
 import type { AdminStaffMember, AdminRole, AdminTrainer } from '@/types/admin'
 import {
@@ -27,6 +29,7 @@ import {
   Link2,
   Unlink,
   Dumbbell,
+  RefreshCw,
 } from 'lucide-react'
 
 export default function AdminStaffPage() {
@@ -50,13 +53,24 @@ export default function AdminStaffPage() {
 
   const inviteMutation = useMutation({
     mutationFn: inviteStaff,
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'staff'] })
-      toast.success('Invitation sent successfully')
+      if (data.invitationSent) {
+        toast.success('Staff member created and invitation email sent')
+      } else {
+        toast.success('Staff member created (email delivery pending)')
+      }
       closeInviteModal()
     },
-    onError: () => {
-      toast.error('Failed to send invitation')
+    onError: (error: unknown) => {
+      // Check for duplicate email error
+      const axiosError = error as { response?: { data?: { error?: { fields?: { email?: string[] } } } } }
+      const emailErrors = axiosError.response?.data?.error?.fields?.email
+      if (emailErrors && emailErrors.some(e => e.toLowerCase().includes('already exists'))) {
+        toast.error('A user with this email already exists. Use "Resend Invitation" from the staff list.')
+      } else {
+        toast.error('Failed to send invitation')
+      }
     },
   })
 
@@ -83,13 +97,46 @@ export default function AdminStaffPage() {
     },
   })
 
+  const resetPasswordMutation = useMutation({
+    mutationFn: resetStaffPassword,
+    onSuccess: (data) => {
+      if (data.sent) {
+        toast.success('Password reset email sent successfully')
+      } else {
+        toast.success('Password reset initiated (email delivery pending)')
+      }
+    },
+    onError: () => {
+      toast.error('Failed to send password reset email')
+    },
+  })
+
+  const resendInvitationMutation = useMutation({
+    mutationFn: resendStaffInvitation,
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'staff'] })
+      if (data.invitationSent) {
+        toast.success('Invitation email resent successfully')
+      } else {
+        toast.success('Invitation resent (email delivery pending)')
+      }
+    },
+    onError: () => {
+      toast.error('Failed to resend invitation')
+    },
+  })
+
   const linkTrainerMutation = useMutation({
     mutationFn: ({ trainerId, userId }: { trainerId: number; userId: string }) =>
       linkTrainerToUser(trainerId, userId),
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'staff'] })
       queryClient.invalidateQueries({ queryKey: ['admin', 'trainers'] })
-      toast.success('Trainer profile linked successfully')
+      if (data.notificationSent) {
+        toast.success('Trainer profile linked and notification email sent')
+      } else {
+        toast.success('Trainer profile linked (notification pending)')
+      }
       closeLinkModal()
     },
     onError: () => {
@@ -331,12 +378,29 @@ export default function AdminStaffPage() {
                             </button>
                           )}
                           <button
-                            onClick={() => toast.success('Password reset email sent')}
-                            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                            onClick={() => {
+                              resetPasswordMutation.mutate(member.id)
+                              setOpenMenuId(null)
+                            }}
+                            disabled={resetPasswordMutation.isPending}
+                            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 disabled:opacity-50"
                           >
                             <Key className="h-4 w-4" />
-                            Reset Password
+                            {resetPasswordMutation.isPending ? 'Sending...' : 'Reset Password'}
                           </button>
+                          {!member.lastLogin && (
+                            <button
+                              onClick={() => {
+                                resendInvitationMutation.mutate(member.id)
+                                setOpenMenuId(null)
+                              }}
+                              disabled={resendInvitationMutation.isPending}
+                              className="w-full px-4 py-2 text-left text-sm text-blue-600 hover:bg-blue-50 flex items-center gap-2 disabled:opacity-50"
+                            >
+                              <RefreshCw className="h-4 w-4" />
+                              {resendInvitationMutation.isPending ? 'Sending...' : 'Resend Invitation'}
+                            </button>
+                          )}
                           <hr className="my-1" />
                           {/* Trainer linking options */}
                           {getLinkedTrainer(member.id) ? (
